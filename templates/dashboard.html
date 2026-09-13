@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trading Bot Dashboard</title>
+    <meta http-equiv="refresh" content="15">
+    <style>
+        body { font-family: -apple-system, Arial, sans-serif; background: #0f1115; color: #e6e6e6; margin: 0; padding: 24px; }
+        h1 { font-size: 20px; color: #fff; }
+        .cards { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .card { background: #1a1d24; border-radius: 10px; padding: 16px 20px; min-width: 140px; }
+        .card .label { font-size: 12px; color: #999; text-transform: uppercase; }
+        .card .value { font-size: 24px; font-weight: 600; margin-top: 4px; }
+        .green { color: #3ecf8e; }
+        .red { color: #ef5b5b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #262a33; font-size: 13px; }
+        th { color: #999; font-weight: 500; }
+        .buy { color: #3ecf8e; }
+        .sell { color: #ef5b5b; }
+        .muted { color: #666; font-size: 12px; margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <h1>📊 Trading Bot Dashboard</h1>
+    <div class="cards">
+        <div class="card">
+            <div class="label">Total Trades</div>
+            <div class="value">{{ summary.total_trades }}</div>
+        </div>
+        <div class="card">
+            <div class="label">Win Rate</div>
+            <div class="value">{{ summary.win_rate }}%</div>
+        </div>
+        <div class="card">
+            <div class="label">Total P&L</div>
+            <div class="value {{ 'green' if summary.total_pnl >= 0 else 'red' }}">${{ summary.total_pnl }}</div>
+        </div>
+        <div class="card">
+            <div class="label">Latest Balance</div>
+            <div class="value">{{ summary.latest_balance if summary.latest_balance else 'N/A' }}</div>
+        </div>
+    </div>
+
+    <h2>Recent Trades</h2>
+    <table>
+        <tr>
+            <th>Time (UTC)</th><th>Symbol</th><th>Side</th><th>Qty</th><th>Price</th><th>Strategy</th><th>P&L</th><th>Source</th>
+        </tr>
+        {% for t in trades %}
+        <tr>
+            <td>{{ t.timestamp[:19] }}</td>
+            <td>{{ t.symbol }}</td>
+            <td class="{{ t.side }}">{{ t.side|upper }}</td>
+            <td>{{ t.qty }}</td>
+            <td>{{ t.price if t.price else '-' }}</td>
+            <td>{{ t.strategy if t.strategy else '-' }}</td>
+            <td class="{{ 'green' if (t.pnl or 0) >= 0 else 'red' }}">{{ t.pnl if t.pnl is not none else '-' }}</td>
+            <td>{{ t.source }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <div class="muted">Auto-refreshes every 15s. Reads from trades.db.</div>
+</body>
+</html>

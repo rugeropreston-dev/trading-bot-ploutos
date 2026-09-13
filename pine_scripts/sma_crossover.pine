@@ -1,0 +1,28 @@
+//@version=5
+strategy("SMA Crossover Bot", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=10)
+
+fastLen = input.int(9, "Fast SMA")
+slowLen = input.int(21, "Slow SMA")
+
+fastSMA = ta.sma(close, fastLen)
+slowSMA = ta.sma(close, slowLen)
+
+plot(fastSMA, color=color.blue, title="Fast SMA")
+plot(slowSMA, color=color.orange, title="Slow SMA")
+
+longCondition = ta.crossover(fastSMA, slowSMA)
+shortCondition = ta.crossunder(fastSMA, slowSMA)
+
+if (longCondition)
+    strategy.entry("Long", strategy.long)
+    alert('{"secret":"CHANGE_ME","ticker":"' + syminfo.ticker + '","action":"buy","qty":1}', alert.freq_once_per_bar_close)
+
+if (shortCondition)
+    strategy.close("Long")
+    alert('{"secret":"CHANGE_ME","ticker":"' + syminfo.ticker + '","action":"sell","qty":1}', alert.freq_once_per_bar_close)
+
+// SETUP NOTES:
+// 1. Add this to a chart, click "Add Alert"
+// 2. Condition: "SMA Crossover Bot" -> "alert() function calls only"
+// 3. Webhook URL: your server's /webhook endpoint (e.g. via ngrok)
+// 4. That's it - the alert() calls above already build the JSON message

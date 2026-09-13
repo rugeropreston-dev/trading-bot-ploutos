@@ -1,0 +1,22 @@
+//@version=5
+strategy("RSI Mean Reversion Bot", overlay=false, default_qty_type=strategy.percent_of_equity, default_qty_value=10)
+
+rsiLen = input.int(14, "RSI Length")
+oversold = input.int(30, "Oversold Level")
+overbought = input.int(70, "Overbought Level")
+
+rsiVal = ta.rsi(close, rsiLen)
+plot(rsiVal, title="RSI")
+hline(oversold, color=color.green)
+hline(overbought, color=color.red)
+
+buySignal = ta.crossover(rsiVal, oversold)
+sellSignal = ta.crossunder(rsiVal, overbought)
+
+if (buySignal)
+    strategy.entry("Long", strategy.long)
+    alert('{"secret":"CHANGE_ME","ticker":"' + syminfo.ticker + '","action":"buy","qty":1}', alert.freq_once_per_bar_close)
+
+if (sellSignal)
+    strategy.close("Long")
+    alert('{"secret":"CHANGE_ME","ticker":"' + syminfo.ticker + '","action":"sell","qty":1}', alert.freq_once_per_bar_close)
