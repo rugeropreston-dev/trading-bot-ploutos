@@ -1,0 +1,48 @@
+name: Daily Ploutos Test
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # runs every day at 8:00 AM UTC
+  workflow_dispatch:  # also lets you trigger it manually from GitHub's website
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run auto_tester.py
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
+        run: python auto_tester.py
+
+      - name: Run alert_if_ready.py
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python alert_if_ready.py
+
+      - name: Save the results log
+        uses: actions/upload-artifact@v4
+        with:
+          name: auto-test-log
+          path: auto_test_log.csv
+
+      - name: Commit updated log back to the repo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add auto_test_log.csv
+          git commit -m "Update auto_test_log.csv [skip ci]" || echo "Nothing to commit"
+          git push
